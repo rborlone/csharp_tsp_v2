@@ -13,7 +13,7 @@ internal class Program
         int seed = seeder.Next();
         Random engine = new Random(seed);
 
-        Mapa mapa = new Mapa("../data/berlin52.dat");
+        Mapa mapa = new Mapa("../data/berlin52.dat"); //att532.dat
         mapa.ComputarCandidatos(cantidadCandidatos);
 
         Tour mejor = null;
@@ -28,7 +28,7 @@ internal class Program
             int nSinMejora = 0;
             while (nSinMejora < cantidadCiclos)
             {
-                int ganancia = tour.TwoOpt(engine, mapa);
+                int ganancia = tour.TwoOpt(engine, mapa, mejor);
                 if (ganancia > 0)
                 {
                     nSinMejora = 0;
@@ -53,8 +53,8 @@ internal class Program
                 Console.WriteLine("Error en el tour");
             }
         }
-
+        mejor.Show();
         sw.Stop();
-        Console.WriteLine(sw.Elapsed);
+        Console.WriteLine(sw.ElapsedMilliseconds);
     }
 }

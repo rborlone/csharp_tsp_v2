@@ -1,3 +1,6 @@
+using System.Reflection;
+using System.Runtime.InteropServices;
+
 class Tour
 {
     public int largo;
@@ -5,6 +8,7 @@ class Tour
     public int costo;
     public List<int> ciudades;
     Ciudad INICIO;
+    Ciudad ACTUAL;
 
     public Tour(int n, Random engine)
     {
@@ -58,14 +62,12 @@ class Tour
 
     public void Show()
     {
-        Console.Write("0,");
-
-        var actual = INICIO.siguiente;
-        while(actual != INICIO){
-            Console.Write(string.Format("{0},", actual.idCiudad));
-            actual = actual.siguiente;
+        ACTUAL = INICIO.siguiente;
+        while(ACTUAL != INICIO){
+            Console.Write(string.Format("{0},", ACTUAL.idCiudad));
+            ACTUAL = ACTUAL.siguiente;
         }
-        Console.Write("0");
+        Console.Write("0, \n");
     }
 
     /***
@@ -73,14 +75,14 @@ class Tour
     */
     public int Evaluar(Mapa m)
     {
-        var actual = INICIO.siguiente;
+        ACTUAL = INICIO.siguiente;
         int total = 0;
-        while(actual != INICIO){
-            total += m.data[actual.anterior.idCiudad][actual.idCiudad];
-            actual = actual.siguiente;
+        while(ACTUAL != INICIO){
+            total += m.data[ACTUAL.anterior.idCiudad][ACTUAL.idCiudad];
+            ACTUAL = ACTUAL.siguiente;
         }
 
-        total += m.data[actual.anterior.idCiudad][actual.idCiudad];
+        total += m.data[ACTUAL.anterior.idCiudad][ACTUAL.idCiudad];
         return total;
     }
 
@@ -105,25 +107,25 @@ class Tour
 
         public bool IsConexa()
     {
-        var actual = INICIO.siguiente;
+        ACTUAL = INICIO.siguiente;
         int cont = 1;
         int pos = INICIO.posicion;
         pos++; if (pos == ady.Length) pos = 0;
-        while (actual != INICIO)
+        while (ACTUAL != INICIO)
         {
-            if (pos != actual.posicion)
+            if (pos != ACTUAL.posicion)
             {
-                Console.WriteLine("Esperada: " + pos + ", encontrada: " + actual.posicion + ", en nodo " + actual.idCiudad);
+                Console.WriteLine("Esperada: " + pos + ", encontrada: " + ACTUAL.posicion + ", en nodo " + ACTUAL.idCiudad);
                 return false;
             }
             pos++; if (pos == ady.Length) pos = 0;
             cont++;
-            if (actual.siguiente.anterior != actual)
+            if (ACTUAL.siguiente.anterior != ACTUAL)
             {
-                Console.WriteLine("Anterior mal configurado en nodo: " + actual.siguiente.idCiudad);
+                Console.WriteLine("Anterior mal configurado en nodo: " + ACTUAL.siguiente.idCiudad);
                 return false;
             }
-            actual = actual.siguiente;
+            ACTUAL = ACTUAL.siguiente;
             if (cont > ady.Length) 
             return false;
         }
@@ -152,6 +154,52 @@ class Tour
         return 0;
     }
     
+       public int TwoOpt(Random engine, Mapa mapa, Tour mejor = null)
+    {
+        int aleatorio = engine.Next(0, largo - 1); // RandomNumberGenerator.Instance.Generate(0, largo -1);
+
+        var t0 = ady[aleatorio];
+        Ciudad t1 = null;
+
+        while(true) //optimización aplicada a un mejor tour
+        {
+            t1 = t0.siguiente;
+            if (mejor == null) 
+                break;
+            if (mejor.ady[t0.idCiudad].siguiente.idCiudad != t1.idCiudad && mejor.ady[t0.idCiudad].anterior.idCiudad != t1.idCiudad) 
+                break;
+            t0 = t0.siguiente;
+
+            if (t0 == INICIO)
+                return 0;
+        }
+
+        foreach (var nodo in mapa.candidatosDeNodo[t1.idCiudad])
+        {
+            var t2 = ady[nodo];
+            if (t1.siguiente == t2 || t0 == t2) continue; 
+            var t3 = t2.anterior;
+            int ganancia = mapa.data[t0.idCiudad][t1.idCiudad] - mapa.data[t1.idCiudad][t2.idCiudad] + mapa.data[t2.idCiudad][t3.idCiudad] - mapa.data[t3.idCiudad][t0.idCiudad];
+            if (ganancia > 0)
+            {
+                int t3t1 = t3.posicion - t1.posicion;
+                int t0t2 = t0.posicion - t2.posicion;
+                if (t3t1 < 0) 
+                    t3t1 += ady.Length;
+
+                if (t0t2 < 0)
+                    t0t2 += ady.Length;
+
+                if (t3t1<t0t2)
+                    Mover(t0, t1, t2, t3); //Movemos en el sentido horario.
+                else
+                    Mover(t3, t2, t1, t0); //Movemos en el sentido horario.
+                return ganancia;
+            }
+        }
+        return 0;
+    }
+
     /***
         Metodo que realizar un swap de ciudades por referencias.
     */
