@@ -7,8 +7,6 @@ class Tour
     public Ciudad[] ady;
     public int costo;
     public List<int> ciudades;
-    Ciudad INICIO;
-    Ciudad ACTUAL;
 
     public Tour(int n, Random engine)
     {
@@ -24,8 +22,11 @@ class Tour
 
         //  mostrarCiudadesTour(ciudades);
 
+        
+
         Ciudad anterior = ady[0];
-        INICIO = ady[1];
+        Ciudad inicio = ady[1];
+         
         int posicion = 0;
         
         for (int index = 1; index != n; index++){
@@ -48,24 +49,19 @@ class Tour
             }
             anterior = ptr;
         }
-    }
 
-    private void showCityTour(){
-        Console.Write("Tour");
-        foreach (int item in ciudades)
-        {
-            Console.Write(string.Format("{0},",item));
-        }
-
-        Console.WriteLine();
+        Console.WriteLine("Terminado");
     }
 
     public void Show()
     {
-        ACTUAL = INICIO.siguiente;
-        while(ACTUAL != INICIO){
-            Console.Write(string.Format("{0},", ACTUAL.idCiudad));
-            ACTUAL = ACTUAL.siguiente;
+        Console.Write(string.Format("{0},", 0));
+        Ciudad inicio = ady[0];
+        Ciudad actual=inicio.siguiente;
+        
+        while(actual != inicio){
+            Console.Write(string.Format("{0},", actual.idCiudad));
+            actual = actual.siguiente;
         }
         Console.Write("0, \n");
     }
@@ -75,14 +71,16 @@ class Tour
     */
     public int Evaluar(Mapa m)
     {
-        ACTUAL = INICIO.siguiente;
+        Ciudad inicio = ady[0];
+        Ciudad actual=inicio.siguiente;
+        
         int total = 0;
-        while(ACTUAL != INICIO){
-            total += m.data[ACTUAL.anterior.idCiudad][ACTUAL.idCiudad];
-            ACTUAL = ACTUAL.siguiente;
+        while(actual != inicio){
+            total += m.data[actual.anterior.idCiudad][actual.idCiudad];
+            actual = actual.siguiente;
         }
 
-        total += m.data[ACTUAL.anterior.idCiudad][ACTUAL.idCiudad];
+        total += m.data[actual.anterior.idCiudad][actual.idCiudad];
         return total;
     }
 
@@ -107,25 +105,27 @@ class Tour
 
         public bool IsConexa()
     {
-        ACTUAL = INICIO.siguiente;
+        Ciudad inicio = ady[0];
+        Ciudad actual=inicio.siguiente;
+        
         int cont = 1;
-        int pos = INICIO.posicion;
+        int pos = inicio.posicion;
         pos++; if (pos == ady.Length) pos = 0;
-        while (ACTUAL != INICIO)
+        while (actual != inicio)
         {
-            if (pos != ACTUAL.posicion)
+            if (pos != actual.posicion)
             {
-                Console.WriteLine("Esperada: " + pos + ", encontrada: " + ACTUAL.posicion + ", en nodo " + ACTUAL.idCiudad);
+                Console.WriteLine("Esperada: " + pos + ", encontrada: " + actual.posicion + ", en nodo " + actual.idCiudad);
                 return false;
             }
             pos++; if (pos == ady.Length) pos = 0;
             cont++;
-            if (ACTUAL.siguiente.anterior != ACTUAL)
+            if (actual.siguiente.anterior != actual)
             {
-                Console.WriteLine("Anterior mal configurado en nodo: " + ACTUAL.siguiente.idCiudad);
+                Console.WriteLine("Anterior mal configurado en nodo: " + actual.siguiente.idCiudad);
                 return false;
             }
-            ACTUAL = ACTUAL.siguiente;
+            actual = actual.siguiente;
             if (cont > ady.Length) 
             return false;
         }
@@ -158,6 +158,7 @@ class Tour
     {
         int aleatorio = engine.Next(0, largo - 1); // RandomNumberGenerator.Instance.Generate(0, largo -1);
 
+        Ciudad inicio = ady[0];
         var t0 = ady[aleatorio];
         Ciudad t1 = null;
 
@@ -170,7 +171,7 @@ class Tour
                 break;
             t0 = t0.siguiente;
 
-            if (t0 == INICIO)
+            if (t0 == inicio)
                 return 0;
         }
 
