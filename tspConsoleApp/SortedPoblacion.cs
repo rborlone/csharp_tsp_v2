@@ -3,10 +3,11 @@ public class SortedPoblacion : IComparable
     public int Costo { get; set; }
     public Tour Tour { get; set; }
 
-    public SortedPoblacion(int Costo, Tour  Tour)
+    public SortedPoblacion(int Costo, Tour tour)
     {
-        Tour = Tour;
-        Costo = Costo;
+        
+        this.Costo = Costo;
+        this.Tour = new Tour(tour);
     }
 
     public int CompareTo(object obj)

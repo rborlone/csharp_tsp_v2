@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
@@ -7,11 +8,24 @@ public class Tour
     public Ciudad[] ady;
     public int costo;
     public List<int> ciudades;
-    Ciudad INICIO;
-    Ciudad ACTUAL;
+    public Ciudad INICIO;
+    public Ciudad ACTUAL;
+
+    public Tour(Tour otro){
+        largo = otro.largo;
+        costo = otro.costo;
+        INICIO = otro.INICIO;
+        ACTUAL = otro.ACTUAL;
+
+        ady = otro.ady.ToArray();
+        // otro.ady.CopyTo(ady, 0);
+
+        ciudades = otro.ciudades.ToList();
+    }
 
     public Tour(int n, Random engine)
     {
+        engine.Next();
         largo = n;
         ady = InitializeArray<Ciudad>(n);
 
@@ -134,7 +148,9 @@ public class Tour
 
     public int TwoOpt(Random engine, Mapa mapa)
     {
-        int aleatorio = engine.Next(0, largo - 1); // RandomNumberGenerator.Instance.Generate(0, largo -1);
+        // int aleatorio = engine.Next(0, largo - 1); // RandomNumberGenerator.Instance.Generate(0, largo -1);
+
+        int aleatorio = (int)RandomNumberGenerator.Instance.Generate(0, largo -1); 
 
         var t0 = ady[aleatorio];
         var t1 = t0.siguiente;
@@ -156,8 +172,9 @@ public class Tour
     
     public int TwoOpt(Random engine, Mapa mapa, Tour mejor = null)
     {
-        int aleatorio = engine.Next(0, largo - 1); // RandomNumberGenerator.Instance.Generate(0, largo -1);
-
+        //int aleatorio = engine.Next(0, largo - 1); // RandomNumberGenerator.Instance.Generate(0, largo -1);
+        int aleatorio = (int)RandomNumberGenerator.Instance.Generate(0, largo -1); 
+        
         var t0 = ady[aleatorio];
         Ciudad t1 = null;
 
@@ -202,7 +219,9 @@ public class Tour
 
       public int ThreeOpt(Random engine, Mapa mapa, Tour mejor = null)
     {
-        int aleatorio = engine.Next(0, largo - 1); // RandomNumberGenerator.Instance.Generate(0, largo -1);
+        //int aleatorio = engine.Next(0, largo - 1); // RandomNumberGenerator.Instance.Generate(0, largo -1);
+
+        int aleatorio = (int)RandomNumberGenerator.Instance.Generate(0, largo -1); 
 
         var t0 = ady[aleatorio];
         Ciudad t1 = null;
