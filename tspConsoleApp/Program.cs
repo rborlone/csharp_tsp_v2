@@ -13,7 +13,7 @@ internal class Program
         int seed = seeder.Next();
         Random engine = new Random(seed);
 
-        Mapa mapa = new Mapa("../data/berlin52.dat"); //att532.dat
+        Mapa mapa = new Mapa("../data/att532.dat"); //att532.dat
         mapa.ComputarCandidatos(cantidadCandidatos);
 
         Tour mejor = null;
@@ -28,7 +28,7 @@ internal class Program
             int nSinMejora = 0;
             while (nSinMejora < cantidadCiclos)
             {
-                int ganancia = tour.TwoOpt(engine, mapa, mejor);
+                int ganancia = tour.ThreeOpt(engine, mapa, mejor);
                 if (ganancia > 0)
                 {
                     nSinMejora = 0;

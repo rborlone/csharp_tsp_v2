@@ -308,4 +308,8 @@ class Tour
 
         return array;
     }
+
+    private bool Entre(Ciudad menor, Ciudad mayor, Ciudad entre){
+        return   ((menor.posicion <= entre.posicion && entre.posicion <= mayor.posicion) || ((mayor.posicion < menor.posicion) && ((menor.posicion <= entre.posicion) || (entre.posicion <= mayor.posicion))));
+    }
 }
