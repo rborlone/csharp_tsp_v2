@@ -1,7 +1,7 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-class Tour
+public class Tour
 {
     public int largo;
     public Ciudad[] ady;
@@ -50,7 +50,7 @@ class Tour
             anterior = ptr;
         }
 
-        Console.WriteLine("Terminado");
+        // Console.WriteLine("Terminado");
     }
 
     public void Show()
@@ -203,9 +203,9 @@ class Tour
 
         public int ThreeOpt(Random engine, Mapa mapa, Tour mejor = null)
     {
-        //int aleatorio = engine.Next(0, largo - 1); // RandomNumberGenerator.Instance.Generate(0, largo -1);
+        int aleatorio = engine.Next(0, largo - 1); // RandomNumberGenerator.Instance.Generate(0, largo -1);
 
-        int aleatorio = (int)RandomNumberGenerator.Instance.Generate(0, largo -1); 
+        // int aleatorio = (int)RandomNumberGenerator.Instance.Generate(0, largo -1); 
 
         Ciudad inicio = ady[0];
         var t0 = ady[aleatorio];
@@ -312,4 +312,153 @@ class Tour
     private bool Entre(Ciudad menor, Ciudad mayor, Ciudad entre){
         return   ((menor.posicion <= entre.posicion && entre.posicion <= mayor.posicion) || ((mayor.posicion < menor.posicion) && ((menor.posicion <= entre.posicion) || (entre.posicion <= mayor.posicion))));
     }
+
+    public int Mutar(Random engine, Mapa m)
+{
+    int sCand = m.candidatosDeNodo[0].Count;
+    Random rnd = new Random();
+    int aleatorio = rnd.Next(largo);
+    
+    Ciudad inicio = ady[aleatorio];
+    Ciudad t0 = inicio;
+    Ciudad t1 = t0.siguiente;
+
+    List<Tuple<int, Ciudad>> candidato = new List<Tuple<int, Ciudad>>();
+    foreach (int cand in m.candidatosDeNodo[t1.idCiudad])
+    {
+        Ciudad t23 = ady[cand];
+        if (t1.siguiente == t23 || t0 == t23) continue;
+        int g01 = m.data[t0.idCiudad][t1.idCiudad] - m.data[t1.idCiudad][t23.idCiudad];
+        if (g01 > 0)
+        {
+            candidato.Add(new Tuple<int, Ciudad>(g01, t23));
+        }
+    }
+    if (candidato.Count == 0) return 0;
+    int aleatorio2 = rnd.Next(candidato.Count);
+    Tuple<int, Ciudad> elegido = candidato[aleatorio2];
+    int g0 = elegido.Item1;
+    Ciudad t2 = elegido.Item2;
+
+    Ciudad t3 = t2.anterior;
+    int ganancia = g0 + m.data[t2.idCiudad][t3.idCiudad] - m.data[t3.idCiudad][t0.idCiudad];
+    int t3t1 = t3.posicion - t1.posicion; if (t3t1 < 0) t3t1 += ady.Length;
+    int t0t2 = t0.posicion - t2.posicion; if (t0t2 < 0) t0t2 += ady.Length;
+    if (t3t1 < t0t2)
+    {
+        Mover(t0, t1, t2, t3);
+    }
+    else
+    {
+        Mover(t3, t2, t1, t0);
+    }
+    return ganancia;
+}
+
+public int GetCompatibilidad(Random engine, Tour otro)
+{
+    int suma = 0;
+    for (int i = 0; i < 10; i++)
+    {
+        int nodo = engine.Next(largo);
+        if (ady[nodo].siguiente.idCiudad != otro.ady[nodo].siguiente.idCiudad && ady[nodo].siguiente.idCiudad != otro.ady[nodo].anterior.idCiudad) suma++;
+        if (ady[nodo].anterior.idCiudad != otro.ady[nodo].siguiente.idCiudad && ady[nodo].anterior.idCiudad != otro.ady[nodo].anterior.idCiudad) suma++;
+    }
+    return suma;
+
+}
+
+private int getIdReemplazo(List<int> reemplazos, int id)
+{
+    while (reemplazos[id] != -1) id = reemplazos[id];
+    return id;
+}
+
+public Tour(Mapa m, Tour padre, Tour madre, Random engine, Tour? mejor)
+{
+    // ady = new List<Ciudad>(padre.ady.Length);
+    largo = padre.largo;
+    Random rnd = new Random();
+    int corte1 = rnd.Next(largo);
+    Ciudad ptr_p0 = padre.ady[corte1];
+    int corte2 = corte1;
+    while (corte2 == corte1) corte2 = rnd.Next(largo);
+    Ciudad ptr_p3 = padre.ady[corte2];
+    
+    int distanciaEntreCortes = ptr_p3.posicion - ptr_p0.posicion;
+    if (distanciaEntreCortes < 0) distanciaEntreCortes += largo;
+    if (distanciaEntreCortes >= largo / 2) 
+    {
+        Ciudad tmp = ptr_p0;
+        ptr_p0 = ptr_p3;
+        ptr_p3 = tmp;
+    }
+
+    int offset = padre.ady[0].posicion;
+    Ciudad aux = ptr_p0;
+    int pos = aux.posicion - offset;
+    if (pos < 0) pos += largo;
+    int nPos = pos;
+
+    Ciudad ptr_m0 = madre.ady[0];
+    if (nPos <= (largo / 2)) 
+    {
+        while ((nPos--) > 0) ptr_m0 = ptr_m0.siguiente;
+    } 
+    else 
+    {
+        nPos = largo - nPos;
+        while ((nPos--) > 0) ptr_m0 = ptr_m0.anterior;
+    }
+
+    List<int> reemplazos = new List<int>(new int[largo]);
+    Ciudad aux_m = ptr_m0;
+
+    while (aux != ptr_p3.siguiente)
+    {
+        Ciudad nodoHijo = new Ciudad();
+        nodoHijo.idCiudad = aux.idCiudad;
+        nodoHijo.posicion = pos++;
+        if (pos == largo) pos = 0;
+        nodoHijo.siguiente = padre.ady[aux.siguiente.idCiudad];
+        nodoHijo.anterior = padre.ady[aux.anterior.idCiudad];
+        if (aux.idCiudad != aux_m.idCiudad) reemplazos[aux.idCiudad] = aux_m.idCiudad;
+        padre.ady[aux.idCiudad] = nodoHijo;
+        aux = aux.siguiente;
+        aux_m = aux_m.siguiente;
+    }
+
+    Ciudad anterior = padre.ady[ptr_p3.idCiudad];
+    while (aux_m != ptr_m0) 
+    {
+        int id = getIdReemplazo(reemplazos, aux_m.idCiudad);
+        Ciudad nodoHijo = new Ciudad();
+        nodoHijo.idCiudad = id;
+        nodoHijo.posicion = pos++;
+        if (pos == largo) pos = 0;
+        nodoHijo.anterior = anterior;
+        nodoHijo.anterior.siguiente = nodoHijo;
+        anterior = nodoHijo;
+        aux_m = aux_m.anterior;
+    }
+
+    padre.ady[ptr_p0.idCiudad].anterior = padre.ady[getIdReemplazo(reemplazos, ptr_m0.anterior.idCiudad)];
+    padre.ady[ptr_p0.idCiudad].anterior.siguiente = padre.ady[ptr_p0.idCiudad];
+
+    int nSinMejora = 0;
+    int MAX = ady.Length/2;
+    while (nSinMejora < MAX)
+    {
+        int ganancia = ThreeOpt(engine, m, mejor);
+        if (ganancia > 0)
+        {
+            nSinMejora = 0;
+            costo -= ganancia;
+        } 
+        else 
+        {
+            nSinMejora++;
+        }
+    }
+}
 }
