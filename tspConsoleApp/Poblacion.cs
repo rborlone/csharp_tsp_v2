@@ -131,17 +131,12 @@ public class Poblacion
         int nPadres = n / 200;
         int ind = 0;
         var nuevaGeneracion = new List<Tour?>(nHijos);
-        for (int i = 0; i < HILOS; i++)
-        {
-            var t = new Thread(() =>
-            {
-                var seeder = new Random();
+        
+               var seeder = new Random();
                 var seed = seeder.Next();
                 var engine = new Random(seed);
                 var probMut = new Random();
 
-                while (true)
-                {
                     var padres = ElegirPadres(engine);
                     int comp = padres.Item1.GetCompatibilidad(engine, padres.Item2);
                     int nH = 1;
@@ -186,20 +181,8 @@ public class Poblacion
                             nuevaGeneracion[indice] = hijo;
                         }
                     }
-                }
-            });
-            hilos.Add(t);
-        }
-
-         foreach (var hilo in hilos)
-        {
-            hilo.Start();
-        }
-
-        foreach (var hilo in hilos)
-        {
-            hilo.Join();
-        }
+          
+         
         soluciones = new List<Tour?>(nHijos + nPadres);
         int j = nPadres;
         for (int i = 0; i < nHijos; i++)

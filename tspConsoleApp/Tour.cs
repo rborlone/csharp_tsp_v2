@@ -1,5 +1,7 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Collections.Generic;
+using System.ComponentModel;
 
 public class Tour
 {
@@ -368,15 +370,21 @@ public int GetCompatibilidad(Random engine, Tour otro)
 
 }
 
-private int getIdReemplazo(List<int> reemplazos, int id)
+private int getIdReemplazo(IDictionary<int,int> reemplazos, int id)
 {
-    while (reemplazos[id] != -1) id = reemplazos[id];
+    foreach(var item in reemplazos) {
+        if (id ==item.Key)
+            id = item.Value;
+    }
+    // while (reemplazos[id] != -1) id = reemplazos[id];
     return id;
 }
 
-public Tour(Mapa m, Tour padre, Tour madre, Random engine, Tour? mejor)
-{
-    // ady = new List<Ciudad>(padre.ady.Length);
+
+public Tour(Mapa m, Tour padre, Tour madre, Random engine, Tour? mejor){
+    
+    ady = InitializeArray<Ciudad>(padre.largo);
+    
     largo = padre.largo;
     Random rnd = new Random();
     int corte1 = rnd.Next(largo);
@@ -386,18 +394,19 @@ public Tour(Mapa m, Tour padre, Tour madre, Random engine, Tour? mejor)
     Ciudad ptr_p3 = padre.ady[corte2];
     
     int distanciaEntreCortes = ptr_p3.posicion - ptr_p0.posicion;
-    if (distanciaEntreCortes < 0) distanciaEntreCortes += largo;
+    if (distanciaEntreCortes < 0) 
+        distanciaEntreCortes += largo;
     if (distanciaEntreCortes >= largo / 2) 
     {
-        Ciudad tmp = ptr_p0;
-        ptr_p0 = ptr_p3;
-        ptr_p3 = tmp;
+       Swap(ref ptr_p0, ref ptr_p3); 
     }
 
     int offset = padre.ady[0].posicion;
     Ciudad aux = ptr_p0;
     int pos = aux.posicion - offset;
-    if (pos < 0) pos += largo;
+    if (pos < 0) 
+        pos += largo;
+
     int nPos = pos;
 
     Ciudad ptr_m0 = madre.ady[0];
@@ -408,10 +417,11 @@ public Tour(Mapa m, Tour padre, Tour madre, Random engine, Tour? mejor)
     else 
     {
         nPos = largo - nPos;
-        while ((nPos--) > 0) ptr_m0 = ptr_m0.anterior;
+        while ((nPos--) > 0) 
+            ptr_m0 = ptr_m0.anterior;
     }
 
-    List<int> reemplazos = new List<int>(new int[largo]);
+    IDictionary<int, int> reemplazos = new Dictionary<int, int>();
     Ciudad aux_m = ptr_m0;
 
     while (aux != ptr_p3.siguiente)
@@ -420,33 +430,37 @@ public Tour(Mapa m, Tour padre, Tour madre, Random engine, Tour? mejor)
         nodoHijo.idCiudad = aux.idCiudad;
         nodoHijo.posicion = pos++;
         if (pos == largo) pos = 0;
-        nodoHijo.siguiente = padre.ady[aux.siguiente.idCiudad];
-        nodoHijo.anterior = padre.ady[aux.anterior.idCiudad];
-        if (aux.idCiudad != aux_m.idCiudad) reemplazos[aux.idCiudad] = aux_m.idCiudad;
-        padre.ady[aux.idCiudad] = nodoHijo;
+        nodoHijo.siguiente = ady[aux.siguiente.idCiudad];
+        nodoHijo.anterior = ady[aux.anterior.idCiudad];
+        if (aux.idCiudad != aux_m.idCiudad){
+            reemplazos.Add(new KeyValuePair<int, int>(aux.idCiudad, aux_m.idCiudad)); 
+        } 
+            
+        ady[aux.idCiudad] = nodoHijo;
         aux = aux.siguiente;
         aux_m = aux_m.siguiente;
     }
 
-    Ciudad anterior = padre.ady[ptr_p3.idCiudad];
+    Ciudad anterior = ady[ptr_p3.idCiudad];
     while (aux_m != ptr_m0) 
     {
         int id = getIdReemplazo(reemplazos, aux_m.idCiudad);
         Ciudad nodoHijo = new Ciudad();
         nodoHijo.idCiudad = id;
         nodoHijo.posicion = pos++;
-        if (pos == largo) pos = 0;
+        if (pos == largo) 
+            pos = 0;
         nodoHijo.anterior = anterior;
         nodoHijo.anterior.siguiente = nodoHijo;
         anterior = nodoHijo;
-        aux_m = aux_m.anterior;
+        aux_m = aux_m.siguiente;
     }
 
-    padre.ady[ptr_p0.idCiudad].anterior = padre.ady[getIdReemplazo(reemplazos, ptr_m0.anterior.idCiudad)];
-    padre.ady[ptr_p0.idCiudad].anterior.siguiente = padre.ady[ptr_p0.idCiudad];
+    ady[ptr_p0.idCiudad].anterior = ady[getIdReemplazo(reemplazos, ptr_m0.anterior.idCiudad)];
+    ady[ptr_p0.idCiudad].anterior.siguiente = ady[ptr_p0.idCiudad];
 
     int nSinMejora = 0;
-    int MAX = ady.Length/2;
+    int MAX = (ady.Length << 1);
     while (nSinMejora < MAX)
     {
         int ganancia = ThreeOpt(engine, m, mejor);
