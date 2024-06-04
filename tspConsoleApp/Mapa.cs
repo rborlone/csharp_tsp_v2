@@ -6,12 +6,11 @@ public class Mapa
 {
     public List<List<int>> data;
     public List<List<int>> candidatosDeNodo;
-
     public Mapa(string filename)
     {
         try
         {
-            string[] lineas = File.ReadAllLines(filename);   
+            string[] lineas = File.ReadAllLines(filename);
             data = new List<List<int>>();
 
             // Lee cada línea del archivo
@@ -34,71 +33,10 @@ public class Mapa
         catch (System.Exception)
         {
             throw new IOException("Error al abrir el archivo");
-        }        
-    }
-
-
-    public int Prim(List<int> padres, List<int> penalidades = null)
-    {
-        int ciudades = data.Count;
-        List<bool> visited = new List<bool>(new bool[ciudades]);
-        List<int> menorDistancia = new List<int>(new int[ciudades]);
-        var pq = new SortedSet<(int, int)>();
-        int largo = 0;
-
-        pq.Add((0, 1));
-
-        while (pq.Count > 0)
-        {
-            var (peso, u) = pq.Min;
-            pq.Remove((peso, u));
-
-            if (!visited[u])
-            {
-                largo += peso;
-            }
-            visited[u] = true;
-
-            var datau = data[u];
-
-            if (penalidades != null)
-            {
-                int penu = penalidades[u];
-                for (int v = 1; v < ciudades; v++)
-                {
-                    if (v == u)
-                    {
-                        continue;
-                    }
-                    int weight = datau[v] + penu + penalidades[v];
-                    if (!visited[v] && weight < menorDistancia[v])
-                    {
-                        menorDistancia[v] = weight;
-                        pq.Add((weight, v));
-                        padres[v] = u;
-                    }
-                }
-            }
-            else
-            {
-                for (int v = 1; v < ciudades; v++)
-                {
-                    if (v == u)
-                    {
-                        continue;
-                    }
-                    int weight = datau[v];
-                    if (!visited[v] && weight < menorDistancia[v])
-                    {
-                        menorDistancia[v] = weight;
-                        pq.Add((weight, v));
-                        padres[v] = u;
-                    }
-                }
-            }
         }
-        return largo;
     }
+
+
 
     public int GetSize()
     {
